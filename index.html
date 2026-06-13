@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>향정 사용량 통합 분석</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <aside class="side-panel">
+        <section class="brand">
+          <p class="eyebrow">Excel 통합 분석</p>
+          <h1>향정 사용량 카운터</h1>
+        </section>
+
+        <label class="drop-zone" id="dropZone">
+          <input id="fileInput" type="file" accept=".xls,.xlsx,.xlsm">
+          <span class="drop-icon" aria-hidden="true">+</span>
+          <strong>엑셀 파일 선택 또는 드롭</strong>
+          <small>.xls, .xlsx 파일을 브라우저에서 바로 분석합니다.</small>
+        </label>
+
+        <section class="status-box" aria-live="polite">
+          <dl>
+            <div>
+              <dt>파일</dt>
+              <dd id="fileName">대기 중</dd>
+            </div>
+            <div>
+              <dt>시트</dt>
+              <dd id="sheetCount">0</dd>
+            </div>
+            <div>
+              <dt>통합 행</dt>
+              <dd id="rowCount">0</dd>
+            </div>
+            <div>
+              <dt>약품</dt>
+              <dd id="drugCount">0</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="stats-panel">
+          <div class="stats-heading">
+            <div>
+              <p class="eyebrow">불출량 기준</p>
+              <h2>집계구분별 통계</h2>
+            </div>
+            <p id="statsScope">전체 약품</p>
+          </div>
+          <div class="summary-strip">
+            <span>불출량 <b id="totalOut">0</b></span>
+            <span>반납량 <b id="totalReturn">0</b></span>
+            <span>순사용량 <b id="totalNet">0</b></span>
+          </div>
+          <div class="stats-table-wrap">
+            <table class="stats-table" id="statsTable">
+              <thead>
+                <tr>
+                  <th>집계구분</th>
+                  <th>정제</th>
+                  <th>산제</th>
+                  <th>주사</th>
+                  <th>합계</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="empty-row">
+                  <td colspan="5">파일을 선택하면 통계가 표시됩니다.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="legend">
+          <h2>분류 기준</h2>
+          <p><strong>산제</strong>는 약품명에 <code>(P)</code>가 있는 경우 우선 집계합니다.</p>
+          <p><strong>주사</strong>는 inj, vial, amp, mL, ⓥ, A 등 주사 계열 표시를 기준으로 잡습니다.</p>
+          <p><strong>정제</strong>는 tab, cap, T 등 경구 제형 표시를 기준으로 잡습니다.</p>
+        </section>
+      </aside>
+
+      <section class="workspace">
+        <section class="sheet-panel">
+          <div class="table-toolbar">
+            <div>
+              <p class="eyebrow">통합 시트</p>
+              <h2 id="tableTitle">분석 대기</h2>
+            </div>
+            <button id="resetHighlight" type="button">선택 해제</button>
+          </div>
+          <div class="table-scroll" id="tableScroll">
+            <table class="data-table" id="dataTable">
+              <thead>
+                <tr>
+                  <th>약품명</th>
+                  <th>분류</th>
+                  <th>병동</th>
+                  <th>환자번호</th>
+                  <th>환자명</th>
+                  <th>불출량</th>
+                  <th>투약량</th>
+                  <th>집계구분</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="empty-row">
+                  <td colspan="8">왼쪽에서 엑셀 파일을 선택하세요.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <footer class="drug-dock">
+          <div class="dock-heading">
+            <strong>약품 선택</strong>
+            <span id="visibleDrugCount">0개</span>
+          </div>
+          <div class="drug-buttons" id="drugButtons"></div>
+        </footer>
+      </section>
+    </main>
+
+    <script src="xlsx.full.min.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
