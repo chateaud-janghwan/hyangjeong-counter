@@ -138,6 +138,52 @@ input {
   background: #fbfcfa;
 }
 
+.location-filter {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfcfa;
+}
+
+.location-filter legend {
+  padding: 0 5px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.location-filter label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px 6px;
+  border: 1px solid #cfd9d4;
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.location-filter label:has(input:checked) {
+  border-color: var(--accent);
+  background: #e9f8f5;
+  color: var(--accent-strong);
+}
+
+.location-filter input {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
 .status-box dl {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

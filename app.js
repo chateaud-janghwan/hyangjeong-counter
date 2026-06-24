@@ -29,9 +29,15 @@ const PARSE_HEADERS = [
 ];
 
 const state = {
+  allRows: [],
   rows: [],
   drugs: [],
   selectedDrugKey: "",
+  locationFilters: {
+    ward: true,
+    inHouse: false,
+    outside: false,
+  },
 };
 
 const els = {
@@ -52,6 +58,9 @@ const els = {
   totalReturn: document.getElementById("totalReturn"),
   totalNet: document.getElementById("totalNet"),
   statsScope: document.getElementById("statsScope"),
+  filterWard: document.getElementById("filterWard"),
+  filterInHouse: document.getElementById("filterInHouse"),
+  filterOutside: document.getElementById("filterOutside"),
 };
 
 els.fileInput.addEventListener("change", (event) => {
@@ -80,6 +89,17 @@ els.dropZone.addEventListener("drop", (event) => {
 
 els.resetHighlight.addEventListener("click", () => clearDrugSelection());
 
+[
+  [els.filterWard, "ward"],
+  [els.filterInHouse, "inHouse"],
+  [els.filterOutside, "outside"],
+].forEach(([checkbox, key]) => {
+  checkbox.addEventListener("change", () => {
+    state.locationFilters[key] = checkbox.checked;
+    applyLocationFilters();
+  });
+});
+
 async function readWorkbook(file) {
   setLoading(file.name);
   try {
@@ -101,7 +121,7 @@ async function readWorkbook(file) {
       return parseSheet(matrix, sheetName);
     });
 
-    state.rows = assignDrugGroupOrder(parsed
+    state.allRows = assignDrugGroupOrder(parsed
       .map((row, index) => ({
         ...row,
         id: `row-${index}`,
@@ -109,21 +129,15 @@ async function readWorkbook(file) {
         category: classifyDrug(row["약품명"], row["단위"]),
         drugKey: getDrugKey(row["약품명"]),
         drugLabel: getDrugLabel(row["약품명"]),
+        locationType: getLocationType(row["병동"]),
         quantity: toNumber(row["불출량"]),
       })))
       .sort(compareRowsByDrugGroup);
-    state.drugs = summarizeDrugs(state.rows);
     state.selectedDrugKey = "";
 
     els.fileName.textContent = file.name;
     els.sheetCount.textContent = workbook.SheetNames.length.toLocaleString("ko-KR");
-    els.rowCount.textContent = state.rows.length.toLocaleString("ko-KR");
-    els.drugCount.textContent = state.drugs.length.toLocaleString("ko-KR");
-    els.tableTitle.textContent = `${state.rows.length.toLocaleString("ko-KR")}행 통합`;
-
-    renderTable();
-    renderStats();
-    renderDrugButtons();
+    applyLocationFilters();
   } catch (error) {
     console.error(error);
     showError("파일을 읽지 못했습니다. 엑셀 형식과 시트 헤더를 확인하세요.");
@@ -226,6 +240,31 @@ function assignDrugGroupOrder(rows) {
 
 function compareRowsByDrugGroup(a, b) {
   return a.groupOrder - b.groupOrder || a.originalIndex - b.originalIndex;
+}
+
+function getLocationType(value) {
+  const normalized = String(value || "").replace(/\s+/g, "").toLowerCase();
+  if (normalized === "원내") return "inHouse";
+  if (normalized === "원외") return "outside";
+  if (normalized) return "ward";
+  return "unassigned";
+}
+
+function applyLocationFilters() {
+  state.rows = state.allRows.filter((row) => state.locationFilters[row.locationType]);
+  state.drugs = summarizeDrugs(state.rows);
+
+  if (!state.drugs.some((drug) => drug.key === state.selectedDrugKey)) {
+    state.selectedDrugKey = "";
+  }
+
+  els.rowCount.textContent = state.rows.length.toLocaleString("ko-KR");
+  els.drugCount.textContent = state.drugs.length.toLocaleString("ko-KR");
+  els.tableTitle.textContent = `${state.rows.length.toLocaleString("ko-KR")}행 통합`;
+
+  renderTable();
+  renderStats();
+  renderDrugButtons();
 }
 
 function toNumber(value) {
