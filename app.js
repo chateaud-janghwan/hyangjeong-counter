@@ -206,16 +206,33 @@ function cleanCell(value) {
 }
 
 function classifyDrug(name, unit) {
-  const normalizedName = String(name || "").toLowerCase();
-  const normalizedUnit = String(unit || "").toLowerCase();
+  const rawName = String(name || "");
+  const rawUnit = String(unit || "").trim();
+  const normalizedName = rawName.toLowerCase();
+  const normalizedUnit = rawUnit.toLowerCase();
 
-  if (/\(p\)/i.test(name)) return "산제";
-  if (/(inj|injection|vial|amp|앰플|주사|주\b|ⓥ)/i.test(name)) return "주사";
-  if (/(inj|vial|amp|ⓥ|a)/i.test(unit)) return "주사";
-  if (/\d+\s*m(l|L)\b/.test(name) || /\/\s*\d+\s*m(l|L)\b/.test(name)) return "주사";
-  if (/(tab|tablet|cap|capsule|정\b|t\b)/i.test(name)) return "정제";
-  if (/(t|tab)/i.test(unit)) return "정제";
+  // 산제: 약품명에 (P) 표기
+  if (/\(p\)/i.test(rawName)) return "산제";
+
+  // 주사: 약품명의 주사 계열 표기 (단어 경계로 'example'의 amp 등 오탐 방지)
+  if (/\b(inj|injection|vial|amp|ample)\b/i.test(rawName)) return "주사";
+  if (/(앰플|주사|ⓥ)/.test(rawName)) return "주사";
+  if (/주(?![가-힣])/.test(rawName)) return "주사"; // "…주5mg" 등 주사 접미 (주의·주성분 등 한글 뒤따르면 제외)
+  if (/\d+\s*m(l|L)\b/.test(rawName)) return "주사"; // 10mL, /100mL 등
+
+  // 주사: 단위가 주사 계열 — 단위 '전체'와 일치할 때만 (EA의 'a' 같은 부분일치 오탐 방지)
+  if (/^(inj|injection|vial|amp|a|v|ⓥ|ml|cc|bag|syr)$/i.test(rawUnit)) return "주사";
+
+  // 정제: 약품명의 경구 제형 표기
+  if (/\b(tab|tablet|tabs|cap|capsule|caps)\b/i.test(rawName)) return "정제";
+  if (/(정|캡슐)(?![가-힣])/.test(rawName)) return "정제"; // "…정0.5mg", "…캡슐"
+
+  // 정제: 단위가 경구 제형 — 단위 '전체'와 일치할 때만 (BTL의 't' 같은 부분일치 오탐 방지)
+  if (/^(t|tab|tablet|c|cap|capsule|정)$/i.test(rawUnit)) return "정제";
+
+  // 그 외 ml 표기는 주사로 간주
   if (normalizedName.includes("ml") || normalizedUnit.includes("ml")) return "주사";
+
   return "정제";
 }
 
