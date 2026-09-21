@@ -520,3 +520,24 @@ function escapeHtml(value) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// ===== 방문자 카운터 (Cloudflare KV) =====
+(function visitorCounter() {
+  const box = document.querySelector("#visitCounter");
+  const out = document.querySelector("#visitCount");
+  if (!box || !out) return;
+
+  // 같은 세션에서 새로고침해도 1회만 증가
+  const counted = sessionStorage.getItem("kp_visit_counted");
+  const method = counted ? "GET" : "POST";
+
+  fetch("/api/hits", { method })
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data || typeof data.count !== "number") return; // 바인딩 없으면 숨김 유지
+      out.textContent = data.count.toLocaleString("ko-KR");
+      box.hidden = false;
+      sessionStorage.setItem("kp_visit_counted", "1");
+    })
+    .catch(() => {});
+})();
