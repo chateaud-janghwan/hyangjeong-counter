@@ -3,13 +3,27 @@
 // POST /api/hits  : 1 증가 후 값 반환
 const KEY = "total";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
 function json(body) {
   return new Response(JSON.stringify(body), {
-    headers: { "content-type": "application/json", "cache-control": "no-store" },
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "no-store",
+      ...CORS_HEADERS,
+    },
   });
 }
 
 export async function onRequest({ request, env }) {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: CORS_HEADERS });
+  }
+
   const kv = env.HITS;
   if (!kv) return json({ count: null }); // 바인딩 없으면 조용히 무시
 

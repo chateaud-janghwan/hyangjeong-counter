@@ -138,6 +138,7 @@ async function readWorkbook(file) {
     els.fileName.textContent = file.name;
     els.sheetCount.textContent = workbook.SheetNames.length.toLocaleString("ko-KR");
     applyLocationFilters();
+    reportUsage();
   } catch (error) {
     console.error(error);
     showError("파일을 읽지 못했습니다. 엑셀 형식과 시트 헤더를 확인하세요.");
@@ -521,23 +522,13 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
-// ===== 방문자 카운터 (Cloudflare KV) =====
-(function visitorCounter() {
-  const box = document.querySelector("#visitCounter");
-  const out = document.querySelector("#visitCount");
-  if (!box || !out) return;
-
-  // 같은 세션에서 새로고침해도 1회만 증가
-  const counted = sessionStorage.getItem("kp_visit_counted");
-  const method = counted ? "GET" : "POST";
-
-  fetch("/api/hits", { method })
-    .then((res) => res.json())
-    .then((data) => {
-      if (!data || typeof data.count !== "number") return; // 바인딩 없으면 숨김 유지
-      out.textContent = data.count.toLocaleString("ko-KR");
-      box.hidden = false;
-      sessionStorage.setItem("kp_visit_counted", "1");
-    })
-    .catch(() => {});
-})();
+// ===== 사용량 집계 (Cloudflare KV) =====
+// 엑셀 파일을 정상적으로 읽어 통계를 계산/표시하는 데 성공했을 때만 1회 카운트.
+// UI에는 표시하지 않음(집계는 메인페이지에서 부서별로 모아 보여줄 예정).
+function reportUsage() {
+  try {
+    fetch("/api/hits", { method: "POST" }).catch(() => {});
+  } catch (error) {
+    // 실패해도 UI 동작에는 영향 없음
+  }
+}
